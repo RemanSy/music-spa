@@ -1,0 +1,10 @@
+{
+    "name": "remansy/zvuk",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "app\\": "./"
+        }
+    },
+    "require": {}
+}
