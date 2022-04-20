@@ -2,6 +2,7 @@ import AbstractView from "./AbstractView.js";
 
 export default class extends AbstractView {
     title = 'Профиль';
+    meta = {auth : true};
 
     getHTML() {
         return `
@@ -96,7 +97,7 @@ export default class extends AbstractView {
 
     loadTrack(title, group, album, duration, src) {
         return `
-            <li class="track_info flex justify-around">
+            <li class="track_info flex justify-evenly">
                 <span class="audio__title">${title}</span>
                 <span class="audio__group">${group}</span>
                 <span class="album">${album}</span>

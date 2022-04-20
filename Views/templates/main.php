@@ -12,6 +12,10 @@
 </head>
 <body>
     <div class="wrapper">
+        <div class="flash-message">
+            <span>Для начала войдите в систему</span>
+        </div>
+
         <div class="nav">
             <div class="container flex">
                 <img src="media/logo.png" alt="logo" class="logo">

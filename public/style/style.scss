@@ -27,6 +27,7 @@
 
 html, body {
     background-color : #e4e9ed;
+    overflow : hidden;
 }
 
 /* Nav bar */
@@ -63,6 +64,23 @@ html, body {
 
 body {
     padding-bottom : calc(var(--player-height) + 10px);
+}
+
+.flash-message {
+    position : absolute;
+    top : calc(var(--nav-size) + 30px);
+    right : -340px;
+    padding : 10px;
+    max-width : 300px;
+    border-radius : 5px;
+    box-shadow : 3px 1px 7px rgba(0, 0, 0, 0.2);
+    background-color : var(--secondary-color);
+    transition : 0.5s ease all;
+    z-index : 99999;
+
+    &.shown {
+        right : 30px;
+    }
 }
 
 .player {
@@ -452,6 +470,15 @@ body {
                 padding : 3px 0 3px 30px;
                 cursor : pointer;
                 
+                & span {
+                    text-align : center;
+                    margin : 0;
+
+                    &.audio__title {
+                        width : 20%;
+                    }
+                }
+
                 &.active {
                     background-color : rgba(200, 200, 200, 0.5);
                 }

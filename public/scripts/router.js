@@ -6,49 +6,77 @@ import groupForm from "./views/groupForm.js";
 import albumForm from "./views/albumForm.js";
 
 class Router {
+    title = document.querySelector('title');
+    body = document.querySelector('main.main');
+    curUrl = window.location.pathname;
+    targetUrl = '';
+    // Callback before routing
+    preReqCallback = null;
+
     getRoute(url) {
         url = this.getUrlPath(url);
+        this.curUrl = url;
+        history.pushState({}, null, url);
         
         switch(url) {
             case '/':
-                this.renderPage(new mainPage());
-                break;
+                return new mainPage();
 
             case '/groupForm':
-                this.renderPage(new groupForm());
-                break;
+                return new groupForm();
 
             case '/albumForm':
-                this.renderPage(new albumForm());
-                break;
+                return new albumForm();
 
             case '/registrationForm':
-                this.renderPage(new registrationForm());
-                break;
+                return new registrationForm();
 
             case '/authForm':
-                this.renderPage(new authForm());
-                break;
+                return new authForm();
 
             case '/profile':
-                this.renderPage(new profile());
-                break;
+                return new profile();
 
             default:
                 title.innerHTML = '404';
                 main.innerHTML = '<h1>404 - Страница не найдена</h1>';
-                break;
         }
     }
 
+    beforeReq(callback) {
+        let cb = () => {
+            let from = this.curUrl;
+            let to = this.targetUrl;
+            let nt = this.renderUrl;
+            nt = nt.bind(this);
+            
+            let next = (url = null) => {
+                return (url !== null) ? nt(url) : true;
+            };
+
+            return callback(to, from, next);
+        }
+        
+        this.preReqCallback = cb;
+    }
+
     navigateTo(url) {
-        history.pushState({}, null, url);
-        this.getRoute(url);
+        this.targetUrl = this.getUrlPath(url);
+        
+        if (this.preReqCallback != null)
+            if (!this.preReqCallback())
+                return;
+
+        this.renderUrl(url);
+    }
+
+    renderUrl(url) {
+        return this.renderPage(this.getRoute(url));
     }
 
     renderPage(c) {
-        title.innerHTML = c.title;
-        main.innerHTML = c.getHTML();
+        this.title.innerHTML = c.title;
+        this.body.innerHTML = c.getHTML();
         c.scripts();
     }
 
@@ -58,11 +86,46 @@ class Router {
         let r = url.split('//')[1].split('/').slice(1)[0];
         return r != '' ? `/${r}` : '/';
     }
+
+    decodeCookie() {
+        let tmp = {};
+        let cookies = document.cookie;
+
+        if (!cookies) return false;
+
+        cookies = cookies
+        .split(';')
+        .map(v => v.split('='));
+
+        cookies.forEach(val => {
+            tmp[decodeURIComponent(val[0].trim())] = decodeURIComponent(val[1].trim());
+        });
+
+        return tmp;
+    }
+
+    isAuthorized() {
+        let cookies = this.decodeCookie();
+        return cookies.user ? true : false;
+    }
 }
 
-const title = document.querySelector('title'),
-      main = document.querySelector('main.main'),
+const msg = document.querySelector('.flash-message'),
       router = new Router();
+
+function toggleMessage() {
+    msg.classList.toggle('shown');
+}
+
+toggleMessage();
+
+router.beforeReq( (to, from, next) => {
+    if (router.getRoute(to).meta?.auth === true)
+        return (router.isAuthorized() === true) ? next() : 
+        (to == from) ? next('/') : next(from);
+    
+    return next();
+} );
 
 document.body.addEventListener('click', e => {
     let t = e.target;
@@ -74,7 +137,7 @@ document.body.addEventListener('click', e => {
 
 window.addEventListener('load', e => {
     e.preventDefault();
-    router.getRoute(window.location.pathname);
+    router.navigateTo(window.location.pathname);
 });
 
 window.addEventListener('popstate', (e) => router.navigateTo(e.target.location.pathname));

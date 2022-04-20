@@ -51,9 +51,6 @@ class Router {
             }
         }
 
-        // if (array_key_exists('/', $this->global) && (!isset(explode('/', $uri)[2]) || explode('/', $uri)[2] == ''))
-        //     $callback = $this->global['/'][$method];
-
         if (!isset($callback)) {
             echo 'Page doesn\'t exist';
             exit;

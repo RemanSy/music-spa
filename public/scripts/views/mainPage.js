@@ -32,9 +32,6 @@ export default class extends AbstractView {
                 });
             });
         });
-
-        // if (Player.audio.src != '')
-        //         Player.loadAudio(Player.tracks[0]);
     }
 
     addRow(src, cover, title, group, duration) {
