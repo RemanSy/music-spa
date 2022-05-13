@@ -13,12 +13,27 @@ class AlbumsController extends Controller {
     }
 
     public function get() {
-        $data = $this->model->get();
+        $this->response->GETHeaders();
+        $id = $this->request->getBody()['id'] ?? false;
+
+        if (!$id) {
+            $data = $this->db->query("SELECT `album_id`, `albums`.`title`, `groups`.`title` as `group`, `genres`.`name` as `genre`, `year`, `albums`.`image`, `albums`.`created_at`, `albums`.`updated_at` 
+            FROM `albums` 
+                JOIN `groups` 
+                    ON `albums`.`_group` = `groups`.`group_id` 
+                JOIN `genres` 
+                    ON `albums`.`genre` = `genres`.`genre_id`");
+        } else {
+            $data = $this->db->query("SELECT `album_id`, `albums`.`title`, `groups`.`title` as `group`, `genres`.`name` as `genre`, `year`, `albums`.`image`, `albums`.`created_at`, `albums`.`updated_at` 
+            FROM `albums` 
+                JOIN `groups` 
+                    ON `albums`.`_group` = `groups`.`group_id` 
+                JOIN `genres` 
+                    ON `albums`.`genre` = `genres`.`genre_id`
+            WHERE `albums`.`album_id` = {$id}");
+        }
 
         if (count($data) < 0) $data = ['message' => 'Альбомы не найдены'];
-
-        $this->response->setHeader('Access-Control-Allow-Origin: *');
-        $this->response->setHeader('Content-type: application/json; charset=utf8');
         
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
     }
@@ -37,10 +52,19 @@ class AlbumsController extends Controller {
     public function getTracks() {
         $this->response->GETHeaders();
 
-        $id = $this->request->getBody();
+        $id = $this->request->getBody()['id'];
         
-        $tracks = $this->db->query("SELECT `tracks`.`title`, `groups`.`title` as `group`, `albums`.`title` as `album`, `duration`, `location` FROM `tracks` JOIN `albums` ON `tracks`.`album` = `albums`.`album_id` JOIN `groups` ON `tracks`.`_group` = `groups`.`group_id` WHERE `albums`.`album_id` = {$id}");
+        $tracks = $this->db->query("SELECT `tracks`.`track_id`, `tracks`.`title`, `groups`.`title` as `group`, `albums`.`title` as `album`, `duration`, `location` 
+        FROM `tracks` 
+            JOIN `albums` 
+                ON `tracks`.`album` = `albums`.`album_id` 
+            JOIN `groups` 
+                ON `tracks`.`_group` = `groups`.`group_id` 
+        WHERE `albums`.`album_id` = {$id}");
 
+        if (!$tracks) echo ('Треки не найдены');
+
+        echo json_encode($tracks, JSON_UNESCAPED_UNICODE);
     }
 
     public function add() {

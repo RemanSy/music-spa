@@ -9,7 +9,7 @@
         <? if(isset($_COOKIE['user'])): ?>
             <li><a href="/profile" data-link>Профиль</a></li>
         <? else: ?>
-            <li><a href="/registrationForm" data-link>Регистрация</a></li>
+            <li><a href="/authForm" data-link>Авторизация</a></li>
         <? endif ?>
 
     </ul>

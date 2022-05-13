@@ -6,7 +6,7 @@ export default class extends AbstractView {
     getHTML() {
         return `
             <section class="registerForm">
-                <div class="title">Регистрация</div>
+                <div class="title">Авторизация</div>
                 <div class="container flex">
                     <form action="addUser" method="POST" class="form-register">
 
@@ -37,9 +37,15 @@ export default class extends AbstractView {
         form.addEventListener('submit', e => {
             e.preventDefault();
 
+            let genT = () => Math.random().toString(36).slice(2);
+            let token = genT() + genT();
+
             err.classList.add('d-none');
 
-            this.xhr.sendRequest('POST', '/users/auth', new FormData(e.target))
+            let formData = new FormData(e.target);
+            formData.append('token', token);
+
+            this.xhr.sendRequest('POST', '/users/auth', formData)
             .then(res => {
                 if (res == 0) {
                     err.classList.remove('d-none');
@@ -47,8 +53,8 @@ export default class extends AbstractView {
                     return err.innerHTML = 'Неправильный логин или пароль';
                 } else if (res == 1) {
                     if (res == '') history.back();
-
-                    document.cookie = 'user=true';
+                    
+                    document.cookie = `user=${token}`;
 
                     this.xhr.sendRequest('GET', '/templates/nav')
                     .then(res => nav.innerHTML = res);

@@ -68,7 +68,7 @@ export default class extends AbstractView {
         const trackList = document.querySelector('.tracks ol');
         trackList.innerHTML = '';
 
-        await this.xhr.sendRequest('GET', `/tracks/album?id=${albumId}`)
+        await this.xhr.sendRequest('GET', `/albums/tracks?id=${albumId}`)
         .then(res => {
             const tracks = JSON.parse(res);
             tracks.forEach(track => {

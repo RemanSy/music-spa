@@ -28,7 +28,7 @@
                     <? if(isset($_COOKIE['user'])): ?>
                         <li><a href="/profile" data-link>Профиль</a></li>
                     <? else: ?>
-                        <li><a href="/registrationForm" data-link>Регистрация</a></li>
+                        <li><a href="/authForm" data-link>Авторизация</a></li>
                     <? endif ?>
 
                 </ul>
@@ -67,7 +67,7 @@
             <!-- {{content}} -->
         </main>
     </div>
-    <script src="scripts/Player.js"></script>
-    <script src="scripts/router.js" type="module"></script>
+    <script src="scripts/player.js"></script>
+    <script src="scripts/app.js" type="module"></script>
 </body>
 </html>

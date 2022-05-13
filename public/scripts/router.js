@@ -1,11 +1,12 @@
 import mainPage from "./views/mainPage.js";
 import registrationForm from "./views/registrationForm.js";
 import profile from "./views/profile.js";
+import album from "./views/album.js";
 import authForm from "./views/authForm.js";
 import groupForm from "./views/groupForm.js";
 import albumForm from "./views/albumForm.js";
 
-class Router {
+export default class {
     title = document.querySelector('title');
     body = document.querySelector('main.main');
     curUrl = window.location.pathname;
@@ -14,9 +15,10 @@ class Router {
     preReqCallback = null;
 
     getRoute(url) {
+        let params = this.getUrlParametersString(url) ?? '';
         url = this.getUrlPath(url);
-        this.curUrl = url;
-        history.pushState({}, null, url);
+        this.curUrl = (params != '') ? url + '?' + params : url;
+        history.pushState({}, null, (params != '') ? url + '?' + params : url);
         
         switch(url) {
             case '/':
@@ -34,12 +36,15 @@ class Router {
             case '/authForm':
                 return new authForm();
 
+            case '/album':
+                return new album();
+
             case '/profile':
                 return new profile();
 
             default:
-                title.innerHTML = '404';
-                main.innerHTML = '<h1>404 - Страница не найдена</h1>';
+                this.title.innerHTML = '404';
+                this.body.innerHTML = '<h1>404 - Страница не найдена</h1>';
         }
     }
 
@@ -49,10 +54,10 @@ class Router {
             let to = this.targetUrl;
             let nt = this.renderUrl;
             nt = nt.bind(this);
-            
+
             let next = (url = null) => {
-                return (url !== null) ? nt(url) : true;
-            };
+                return (url != null) ? nt(url) : true;
+            }
 
             return callback(to, from, next);
         }
@@ -75,6 +80,7 @@ class Router {
     }
 
     renderPage(c) {
+        if (!c) return false;
         this.title.innerHTML = c.title;
         this.body.innerHTML = c.getHTML();
         c.scripts();
@@ -82,9 +88,16 @@ class Router {
 
     getUrlPath(url) {
         if (!url.includes('//')) return url;
-
+        
         let r = url.split('//')[1].split('/').slice(1)[0];
+        r = r.split('?')[0];
         return r != '' ? `/${r}` : '/';
+    }
+
+    getUrlParametersString(url) {
+        if (!url.includes('?')) return false;
+        
+        return url.split('?')[1];
     }
 
     decodeCookie() {
@@ -109,35 +122,3 @@ class Router {
         return cookies.user ? true : false;
     }
 }
-
-const msg = document.querySelector('.flash-message'),
-      router = new Router();
-
-function toggleMessage() {
-    msg.classList.toggle('shown');
-}
-
-toggleMessage();
-
-router.beforeReq( (to, from, next) => {
-    if (router.getRoute(to).meta?.auth === true)
-        return (router.isAuthorized() === true) ? next() : 
-        (to == from) ? next('/') : next(from);
-    
-    return next();
-} );
-
-document.body.addEventListener('click', e => {
-    let t = e.target;
-    if (t.tagName === 'A' && t.dataset.link != undefined) {
-        e.preventDefault();
-        router.navigateTo(t.href);
-    }
-});
-
-window.addEventListener('load', e => {
-    e.preventDefault();
-    router.navigateTo(window.location.pathname);
-});
-
-window.addEventListener('popstate', (e) => router.navigateTo(e.target.location.pathname));

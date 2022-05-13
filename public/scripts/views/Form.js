@@ -49,7 +49,7 @@ export default class extends AbstractView {
         });
     }
 
-    // 1 Fake input, 2 url for the request, 3 id of table, 4 name of required field
+    // 1 Div with inputs, 2 url for the request, 3 id of table, 4 name of required field
     createDropdownList(inputDiv, url, idName, titleName) {
         if (!inputDiv.classList.contains('drop-down')) throw 'Input div must have a \'drop-down\' class';
         let list = document.createElement('ul');

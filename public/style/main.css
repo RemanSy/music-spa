@@ -148,6 +148,37 @@ section {
     align-items : center;
 }
 
+/* Alerts */
+.alert-primary {
+    color: #004085!important;
+    background-color: #cce5ff!important;
+    border-color: #b8daff!important;
+}
+
+.alert-secondary {
+    color: #383d41!important;
+    background-color: #e2e3e5!important;
+    border-color: #d6d8db!important;
+}
+
+.alert-success {
+    color: #155724!important;
+    background-color: #d4edda!important;
+    border-color: #c3e6cb!important;
+}
+
+.alert-danger {
+    color: #721c24!important;
+    background-color: #f8d7da!important;
+    border-color: #f5c6cb!important;
+}
+
+.alert-warning {
+    color: #856404!important;
+    background-color: #fff3cd!important;
+    border-color: #ffeeba!important;
+}
+
 /* Visibility */
 .d-block {
     display : block!important;

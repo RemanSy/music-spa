@@ -35,6 +35,8 @@ class UsersController extends Controller {
         $this->model->username = $data['username'];
         $this->model->email = $data['email'];
         $this->model->password = md5($data['password']);
+        $this->model->token = $data['token'];
+        $this->model->role = 1;
 
         if (!$this->model->save($data)) {
             $this->response->responseCode(400);
@@ -47,11 +49,18 @@ class UsersController extends Controller {
 
     public function auth() {
         $data = $this->request->getBody();
-
+        
         $this->model->email = $data['email'];
         $this->model->password = md5($data['password']);
+        $this->model->token = $data['token'];
 
         echo $this->model->auth();
+    }
+
+    public function checkAuth() {
+        $res = $this->model->where('token', '=', $_COOKIE['user']);
+
+        echo count($res);
     }
 
 }

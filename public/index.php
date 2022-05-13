@@ -31,6 +31,8 @@ $router->post('/users/add', [UsersController::class, 'add']);
 
 $router->post('/users/auth', [UsersController::class, 'auth']);
 
+$router->post('/users/checkAuth', [UsersController::class, 'checkAuth']);
+
 $router->put('/users/update', [UsersController::class, 'update']);
 
 $router->delete('/users/delete', [UsersController::class, 'delete']);
@@ -50,6 +52,8 @@ $router->get('/groups/search', [GroupsController::class, 'search']);
 $router->get('/albums/get', [AlbumsController::class, 'get']);
 
 $router->get('/albums/group', [AlbumsController::class, 'group']);
+
+$router->get('/albums/tracks', [AlbumsController::class, 'getTracks']);
 
 $router->post('/albums/add', [AlbumsController::class, 'add']);
 

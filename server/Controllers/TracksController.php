@@ -32,18 +32,6 @@ class TracksController extends Controller {
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
     }
 
-    public function album() {
-        $this->response->GETHeaders();
-
-        $id = $this->request->getBody()['id'];
-
-        $data = $this->model->album($id);
-
-        if (count($data) < 0) $data = ['message' => 'Альбом пуст'];
-
-        echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    }
-
     public function add() {
         $this->response->POSTHeaders();
 

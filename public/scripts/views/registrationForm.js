@@ -53,13 +53,20 @@ export default class extends AbstractView {
                 return err.innerHTML = 'Пароли не совпадают';
             }
 
+            let genT = () => Math.random().toString(36).slice(2);
+            let token = genT() + genT();
+
+            let fdTmp = new FormData(e.target);
+
+            fdTmp.append('token', token);
+
             err.classList.add('d-none');
 
-            this.xhr.sendRequest('POST', '/users/add', new FormData(e.target))
+            this.xhr.sendRequest('POST', '/users/add', fdTmp)
             .then(res => {
                 if (res == '') history.back();
 
-                document.cookie = 'user=true';
+                document.cookie = `user=${token}`;
 
                 this.xhr.sendRequest('GET', '/templates/nav')
                 .then(res => nav.innerHTML = res);

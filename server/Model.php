@@ -15,7 +15,7 @@ class Model {
             $this->table = strtolower(array_pop(explode('\\', get_called_class())));
             
         if (!isset($this->primary_key))
-            $this->primary_key = $this->db->query("show columns from `tracks` where `Key` = 'PRI'")[0]['Field'];
+            $this->primary_key = $this->db->query("show columns from `{$this->table}` where `Key` = 'PRI'")[0]['Field'];
     }
 
     public function where($val1, $op, $val2) {
@@ -40,15 +40,17 @@ class Model {
     public function save() {
         $placeholders = [];
 
-        foreach ($this->fields as $key => $fType) {
-            if ($fType == 'timestamp' || $fType == 'datetime')
-                $this->$key = date("Y-m-d H:i:s");
-            else if ($this->$key == '')
-                $this->$key = 'NULL';
+        foreach ($this->fields as $field => $fType) {
+            if (($fType == 'timestamp' || $fType == 'datetime') && !$this->$field)
+                $this->$field = date("Y-m-d H:i:s");
+            else if ($fType == 'datetime' && $this->$field)
+                $this->$field = date("Y-m-d H:i:s", strtotime("{$this->year}-01-01"));
+            else if ($this->$field == '')
+                $this->$field = 'NULL';
             else
-                $this->$key = htmlspecialchars(strip_tags(trim($this->$key)));
+                $this->$field = htmlspecialchars(strip_tags(trim($this->$field)));
 
-            $placeholders[$key] = ":{$key}";
+            $placeholders[$field] = ":{$field}";
         }
         
         $p = implode(', ', $placeholders);
@@ -67,15 +69,26 @@ class Model {
         return $query->execute() ?? false;
     }
 
-    public function update($id, $data) {
-        $dn = [];
-        foreach($data as $key => $val)
-            array_push($dn, "`{$key}` = '{$val}'");
+    public function update($id, $fields) {
+        $placeholders = [];
 
-        $dn = implode(', ', $dn);
-        $sql = "UPDATE {$this->table} SET {$dn} WHERE `{$this->primary_key}` = {$id}";
-        
-        return $this->db->query($sql);
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $this->fields))
+                $placeholders[$field] = "`{$field}` = :{$field}";
+            else
+                throw new \Exception('Field doesn\'t exist');
+        }
+
+        $p = implode(', ', $placeholders);
+
+        $sql = "UPDATE `{$this->table}` SET {$p} WHERE `{$this->primary_key}` = {$id}";
+
+        $query = $this->db->prepare($sql);
+
+        foreach ($fields as $field)
+            $query->bindParam(":{$field}", $this->$field);
+
+        return $query->execute() ?? false;
     }
 
     public function delete($id) {
