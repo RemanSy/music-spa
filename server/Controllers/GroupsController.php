@@ -12,11 +12,25 @@ class GroupsController extends Controller {
     }
 
     public function get() {
-        $data = $this->model->get();
-
         $this->response->GETHeaders();
+        $id = $this->request->getBody()['id'] ?? false;
+
+        if (!$id) {
+            $data = $this->db->query("SELECT `group_id`, `groups`.`title`, `countries`.`name`, `groups`.`image`
+            FROM `groups` 
+                JOIN `countries` 
+                    ON `groups`.`country` = `countries`.`country_id`");
+        } else {
+            $data = $this->db->query("SELECT `group_id`, `groups`.`title`, `countries`.`name`, `groups`.`image`
+            FROM `groups` 
+                JOIN `countries` 
+                    ON `groups`.`country` = `countries`.`country_id`
+            WHERE `groups`.`group_id` = $id");
+        }
+
+        if (count($data) < 0) $data = ['message' => 'Группы не найдены'];
         
-        echo json_encode($data);
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
     }
 
     public function add() {
@@ -39,6 +53,28 @@ class GroupsController extends Controller {
         $res = $this->db->query("SELECT `group_id`, `title` FROM `groups` WHERE `title` LIKE '%{$search}%'");
 
         echo json_encode($res);
+    }
+
+    public function tracks() {
+        $id = $this->request->getBody()['id'] ?? false;
+        if (!$id) {
+            echo 'Invalid id';
+            return;
+        };
+
+        $this->model->group_id = $id;
+        echo json_encode($this->model->getTracks());
+    }
+
+    public function albums() {
+        $id = $this->request->getBody()['id'] ?? false;
+        if (!$id) {
+            echo 'Invalid id';
+            return;
+        };
+
+        $this->model->group_id = $id;
+        echo json_encode($this->model->getAlbums());
     }
 
 }

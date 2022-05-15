@@ -31,9 +31,9 @@ export default class extends AbstractView {
     }
 
     async scripts() {
-        let params = this.getUrlParameters(window.location.href);
+        const params = this.getUrlParameters(window.location.href);
         const trackList = document.querySelector('.track_list');
-        if (!params.alid) console.log('ID doesn\'t exist');
+        if (!params.alid) return console.log('ID doesn\'t exist');
         
         await this.xhr.sendRequest('GET', `albums/get?id=${params.alid}`)
         .then(data => {
@@ -64,6 +64,54 @@ export default class extends AbstractView {
                 Player.playAudio();
             });
         });
+
+        // Add album to favorites
+        document.querySelector('.buttons span.fav-icon').addEventListener('click', e => {
+            let d = new FormData();
+            d.append('album', params.alid);
+            d.append('token', this.decodeCookie().user);
+
+            this.xhr.sendRequest('POST', '/users/fav', d)
+            .then(res => {
+                
+                if (res == 1)
+                    this.showMessage('Добавлено в понравившиеся');
+                else if (res == 0)
+                    this.showMessage('Уже в понравившемся');
+                else
+                    this.showMessage('Ошибка добавления');
+
+            });
+        });
+
+        // Add track to favorites
+        document.querySelectorAll('.add_favorite').forEach(el => {
+            el.addEventListener('click', e => {
+                let file = e.target.parentNode.querySelector('.src').dataset.src;
+                file = file.split('/')[1];
+                let d = new FormData();
+                d.append('file', file);
+                d.append('token', this.decodeCookie().user);
+
+                this.xhr.sendRequest('POST', '/users/fav', d)
+                .then(res => {
+                    
+                    if (res == 1)
+                        this.showMessage('Добавлено в понравившиеся');
+                    else if (res == 0)
+                        this.showMessage('Уже в понравившемся');
+                    else
+                        this.showMessage('Ошибка добавления');
+
+                });
+            });
+        });
+
+        document.querySelector('.listen.btn').addEventListener('click', () => {
+            Player.songIndex = 0;
+            Player.loadAudio(document.querySelector('.track_info'));
+            Player.playAudio();
+        });
     }
 
     loadTrack(title, group, duration, location) {
@@ -74,7 +122,7 @@ export default class extends AbstractView {
             </div>
             <span class="audio__title">${title}</span>
             <span class="audio__group">${group}</span>
-            <span class="material-icons fav-icon">favorite_border</span>
+            <span class="material-icons fav-icon add_favorite">favorite_border</span>
             <span class="duration">${duration}</span>
             <div class="src" data-src="uploads/${location}"></div>
         </li>

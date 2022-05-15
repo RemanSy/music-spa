@@ -7,6 +7,12 @@ export default class extends AbstractView {
     getHTML() {
         return `
             <section class="profile">
+                <div class="menu">
+                    <span data-class="start-groups" id="menu_groups">Группы</span>
+                    <span data-class="start-albums" id="menu_albums">Альбомы</span>
+                    <span data-class="start-tracks" id="menu_tracks">Треки</span>
+                    <div class="animation start-groups"></div>
+                </div>
                 <div class="container grid">
                     <div class="albums">
                         <div class="title">Группы</div>
@@ -29,21 +35,123 @@ export default class extends AbstractView {
     }
 
     async scripts() {
-        const tree = document.querySelector('ul.tree');
+        const tree = document.querySelector('ul.tree'),
+              subTitle = document.querySelector('.albums .title'),
+              trackList = document.querySelector('.tracks ol');
 
-        // Getting groups and albums
-        await this.xhr.sendRequest('GET', '/albums/group')
-        .then(res => {
-            const groups = JSON.parse(res);
-            groups.forEach(group => {
-                tree.insertAdjacentHTML('afterbegin', 
-                `<li>
-                    <div class="trigger">${group.title}</div>
-                    <ul class="trigger-target">${this.loadAlbums(group.albums)}</ul>
-                </li>`
-                );
+        document.querySelectorAll('.menu span').forEach(el => {
+            el.addEventListener('click', e => {
+                let anim = document.querySelector('.menu .animation');
+                anim.className = 'animation';
+                anim.classList.add(e.target.dataset.class);
             });
         });
+
+        // Select groups
+        document.querySelector('#menu_groups').addEventListener('click', async () => {
+            document.querySelector('.container.grid').classList.remove('tracks_layout');
+            subTitle.innerHTML = 'Группы';
+            tree.innerHTML = '';
+            trackList.innerHTML = '';
+
+            // this.xhr.sendRequest('POST', '/users/getFavGroups');
+
+            await this.xhr.sendRequest('GET', '/albums/group')
+            .then(res => {
+                const groups = JSON.parse(res);
+                groups.forEach(group => {
+                    tree.insertAdjacentHTML('afterbegin', 
+                    `<li>
+                        <div class="trigger">${group.title}</div>
+                        <ul class="trigger-target">${this.loadAlbums(group.albums)}</ul>
+                    </li>`
+                    );
+                });
+            });
+
+            document.querySelectorAll('div.trigger').forEach(el => {
+                el.addEventListener('click', () => {
+                    let ul = el.nextElementSibling;
+                    ul.classList.toggle('active');
+    
+                    ul.querySelectorAll('li').forEach(li => {
+                        
+                        li.addEventListener('click', () => {
+                            let albumId = li.dataset.id;
+    
+                            this.playerLoadAlbumTracks(albumId);
+                        });
+    
+                    });
+                });
+            });
+
+        });
+
+        // Select Albums
+        document.querySelector('#menu_albums').addEventListener('click', async () => {
+            document.querySelector('.container.grid').classList.remove('tracks_layout');
+            subTitle.innerHTML = 'Альбомы';
+            tree.innerHTML = '';
+            trackList.innerHTML = '';
+
+            // this.xhr.sendRequest('POST', '/users/getFavAlbums');
+
+            await this.xhr.sendRequest('GET', '/albums/get')
+            .then(res => {
+                const albums = JSON.parse(res);
+                tree.insertAdjacentHTML('afterbegin', this.loadAlbums(albums));
+            });
+
+            tree.querySelectorAll('li').forEach(el => {
+                el.addEventListener('click', () => {
+                    this.playerLoadAlbumTracks(el.dataset.id);
+                });
+            });
+        });
+
+        document.querySelector('#menu_tracks').addEventListener('click', async () => {
+            document.querySelector('.container.grid').classList.add('tracks_layout');
+            trackList.innerHTML = '';
+
+            // this.xhr.sendRequest('POST', '/users/getFavTracks');
+
+            await this.xhr.sendRequest('GET', '/tracks/get')
+            .then(res => {
+                const tracks = JSON.parse(res);
+
+                tracks.forEach(track => {
+                    trackList.insertAdjacentHTML('afterbegin', this.loadTrack(track.title, track.group, track.album, track.duration, track.location));
+                });
+            });
+
+            Player.tracks = document.querySelectorAll('li.track_info');
+
+            Player.tracks.forEach((track, key) => {
+                track.addEventListener('click', () => {
+                    Player.songIndex = key;
+                    Player.loadAudio(track);
+                    Player.playAudio();
+                });
+            });
+        });
+
+        // Getting groups and albums
+        // await this.xhr.sendRequest('GET', '/albums/group')
+        // .then(res => {
+        //     const groups = JSON.parse(res);
+        //     groups.forEach(group => {
+        //         tree.insertAdjacentHTML('afterbegin', 
+        //         `<li>
+        //             <div class="trigger">${group.title}</div>
+        //             <ul class="trigger-target">${this.loadAlbums(group.albums)}</ul>
+        //         </li>`
+        //         );
+        //     });
+        // });
+
+        // Trigger click on groups tab in menu
+        document.querySelector('#menu_groups').click();
 
         // Handle album selection
         document.querySelectorAll('div.trigger').forEach(el => {
@@ -56,7 +164,7 @@ export default class extends AbstractView {
                     li.addEventListener('click', () => {
                         let albumId = li.dataset.id;
 
-                        this.playerLoadTracks(albumId);
+                        this.playerLoadAlbumTracks(albumId);
                     });
 
                 });
@@ -64,7 +172,8 @@ export default class extends AbstractView {
         });
     }
 
-    async playerLoadTracks(albumId) {
+    // Load tracks from album
+    async playerLoadAlbumTracks(albumId) {
         const trackList = document.querySelector('.tracks ol');
         trackList.innerHTML = '';
 

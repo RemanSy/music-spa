@@ -25,7 +25,7 @@ const app = new App(),
 router.beforeReq(  (to, from, next) => {
     function redirWithMsg(url, msg) {
         app.showMessage(msg);
-        next(url);
+        return next(url);
     }
 
     let route = router.getRoute(to);
@@ -33,16 +33,17 @@ router.beforeReq(  (to, from, next) => {
     
     // Authentification check
     if (route.meta?.auth === true)
-        return (router.isAuthorized() === true) ? null : 
-               (to == from) ? redirWithMsg('/', 'Для начала авторизируйтесь') : redirWithMsg(from, 'Для начала авторизируйтесь');
+        if (router.isAuthorized() !== true)
+               return (to == from) ? redirWithMsg('/', 'Для начала авторизируйтесь') : redirWithMsg(from, 'Для начала авторизируйтесь');
+        
     
     // Check if authentification is valid
     xhr.sendRequest('POST', '/users/checkAuth')
-    .then(async data => {
+    .then(data => {
         if (data == 0) {
             document.cookie = 'user=; Max-Age=0; path=/; domain=' + location.host;
 
-            await xhr.sendRequest('GET', '/templates/nav')
+            xhr.sendRequest('GET', '/templates/nav')
                     .then(res => document.querySelector('div.nav').innerHTML = res);
 
 

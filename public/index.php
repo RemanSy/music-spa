@@ -31,6 +31,18 @@ $router->post('/users/add', [UsersController::class, 'add']);
 
 $router->post('/users/auth', [UsersController::class, 'auth']);
 
+
+// Add track or album to favorites
+$router->post('/users/fav', [UsersController::class, 'addFavorite']);
+
+
+// Getting favorite things
+$router->post('/users/getFavGroups', [UsersController::class, 'getGroups']);
+
+$router->post('/users/getFavAlbums', [UsersController::class, 'getAlbums']);
+
+$router->post('/users/getFavTracks', [UsersController::class, 'getTracks']);
+
 $router->post('/users/checkAuth', [UsersController::class, 'checkAuth']);
 
 $router->put('/users/update', [UsersController::class, 'update']);
@@ -45,7 +57,14 @@ $router->post('/groups/add', [GroupsController::class, 'add']);
 
 $router->delete('/groups/delete', [GroupsController::class, 'delete']);
 
+// Search group on name
 $router->get('/groups/search', [GroupsController::class, 'search']);
+
+// Get group albums
+$router->get('/groups/getAlbums', [GroupsController::class, 'albums']);
+
+// Get group tracks
+$router->get('/groups/getTracks', [GroupsController::class, 'tracks']);
 
 
 // API Albums

@@ -57,6 +57,29 @@ export default class extends AbstractView {
 
         });
 
+        // Add track to favorites
+        document.querySelectorAll('.add_favorite').forEach(el => {
+            el.addEventListener('click', e => {
+                let file = e.target.parentNode.querySelector('.src').dataset.src;
+                file = file.split('/')[1];
+                let d = new FormData();
+                d.append('file', file);
+                d.append('token', this.decodeCookie().user);
+
+                this.xhr.sendRequest('POST', '/users/fav', d)
+                .then(res => {
+                    
+                    if (res == 1)
+                        this.showMessage('Добавлено в понравившиеся');
+                    else if (res == 0)
+                        this.showMessage('Уже в понравившемся');
+                    else
+                        this.showMessage('Ошибка добавления');
+
+                });
+            });
+        });
+
         const arrowR = document.querySelector('.slider .arrow-right');
         const arrowL = document.querySelector('.slider .arrow-left');
 
@@ -98,7 +121,7 @@ export default class extends AbstractView {
                     -
                     <div class="audio__group">${group}</div>
                 </div>
-                <span class="material-icons fav-icon">favorite_border</span>
+                <span class="material-icons fav-icon add_favorite">favorite_border</span>
                 <div class="audio__duration">${duration}</div>
             </div>
         `;

@@ -1,6 +1,7 @@
 import mainPage from "./views/mainPage.js";
 import registrationForm from "./views/registrationForm.js";
 import profile from "./views/profile.js";
+import group from "./views/group.js";
 import album from "./views/album.js";
 import authForm from "./views/authForm.js";
 import groupForm from "./views/groupForm.js";
@@ -36,9 +37,12 @@ export default class {
             case '/authForm':
                 return new authForm();
 
+            case '/group':
+                return new group();
+
             case '/album':
                 return new album();
-
+            
             case '/profile':
                 return new profile();
 
@@ -52,11 +56,9 @@ export default class {
         let cb = () => {
             let from = this.curUrl;
             let to = this.targetUrl;
-            let nt = this.renderUrl;
-            nt = nt.bind(this);
 
             let next = (url = null) => {
-                return (url != null) ? nt(url) : true;
+                return (url != null) ? url : true;
             }
 
             return callback(to, from, next);
@@ -67,12 +69,16 @@ export default class {
 
     navigateTo(url) {
         this.targetUrl = this.getUrlPath(url);
-        
-        if (this.preReqCallback != null)
-            if (!this.preReqCallback())
-                return;
+        let ch = this.preReqCallback();
 
-        this.renderUrl(url);
+        if (this.preReqCallback != null) {
+            if (!ch)
+                return;
+            else if (ch === true)
+                return this.renderUrl(url);
+        }
+        
+        this.renderUrl(ch);
     }
 
     renderUrl(url) {

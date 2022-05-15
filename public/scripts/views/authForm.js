@@ -58,6 +58,8 @@ export default class extends AbstractView {
 
                     this.xhr.sendRequest('GET', '/templates/nav')
                     .then(res => nav.innerHTML = res);
+
+                    this.showMessage('Вы успешно авторизировались');
                 } else {
                     err.classList.remove('d-none');
                     err.classList.add('flex');

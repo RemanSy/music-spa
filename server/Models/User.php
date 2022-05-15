@@ -18,4 +18,16 @@ class User extends Model {
 
         echo count($res);
     }
+
+    public function getFavGroups() {
+        $this->db->query("SELECT `` FROM `users_relations`");
+    }
+
+    public function getFavAlbums() {
+        
+    }
+
+    public function getFavTracks() {
+        
+    }
 }
