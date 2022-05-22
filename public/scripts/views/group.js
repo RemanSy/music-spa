@@ -9,12 +9,12 @@ export default class extends Form {
                 <div class="container flex">
                     <div class="meta">
                         <div class="image_container">
-                            <img src="uploads/4469404a433dc6e01e89d6af88068ff3.jpg" class="group__img">
+                            <img src="" class="group__img">
                         </div>
                         <div class="info">
                             
                             <div>Исполнитель</div>
-                            <div class="group__title">Disturbed</div>
+                            <div class="group__title"></div>
                             <div class="buttons">
                                 <button class="listen btn"><i class="material-icons">play_arrow</i> Слушать</button>
                                 <span class="material-icons fav-icon btn">favorite_border</span>
@@ -27,13 +27,9 @@ export default class extends Form {
                         <span data-class="start-albums" id="menu_albums">Альбомы</span>
                         <div class="animation start-tracks"></div>
                     </div>
-                    <ol class="track_list">
-
-                    </ol>
+                    <ol class="track_list"></ol>
                     
-                    <div class="container flex albums_list">
-                    
-                    </div>
+                    <div class="container flex albums_list"></div>
                 </div>
             </section>
         `;
@@ -48,6 +44,7 @@ export default class extends Form {
 
         if (!params.gid) return console.log('ID doesn\'t exist');
 
+        // Adding menu animation
         document.querySelectorAll('.menu span').forEach(el => {
             el.addEventListener('click', e => {
                 let anim = document.querySelector('.menu .animation');
@@ -56,11 +53,16 @@ export default class extends Form {
             });
         });
 
-        this.xhr.sendRequest('GET', `groups/get?id=${params.gid}`)
-        .then(res => {
-            console.log(res);
+        // Getting favorite groups
+        await this.xhr.sendRequest('GET', `/groups/get?id=${params.gid}`)
+        .then(group => {
+            group = JSON.parse(group)[0];
+            
+            document.querySelector('.image_container img').src = `uploads/${group.image}`;
+            document.querySelector('.group__title').innerHTML = group.title;
         });
-
+        
+        // Handling click on tracks menu button
         menuTracks.addEventListener('click', async () => {
             albumList.style.display = 'none';
             trackList.style.display = 'block';
@@ -77,6 +79,21 @@ export default class extends Form {
                 });
             });
 
+            // Handle favorite tracks
+            if (this.app.isAuthorized()) {
+                await this.xhr.sendRequest('GET', 'users/getFavTracks')
+                .then(res => {
+                    if (res == 0) return;
+                    let trcs = JSON.parse(res);
+
+                    trcs.forEach(track => {
+                        let pN = document.querySelector(`[data-src="uploads/${track.location}"]`)?.parentNode;
+                        if (!pN) return;
+                        pN.querySelector('.fav-icon').innerHTML = 'favorite';
+                    });
+                });
+            }
+
             // Load tracks into player
             Player.tracks = document.querySelectorAll('li.track_info');
 
@@ -89,7 +106,7 @@ export default class extends Form {
             });
         });
 
-
+        // Handling click on albums menu button
         menuAlbums.addEventListener('click', async () => {
             albumList.style.display = 'flex';
             trackList.style.display = 'none';
@@ -106,6 +123,7 @@ export default class extends Form {
                 });
             });
 
+            // Adding animation to albums covers
             document.querySelectorAll('.album_el').forEach(el => {
                 el.addEventListener('mouseover', function() { el.querySelector('.el__text').classList.add('shown') });
     
@@ -113,7 +131,27 @@ export default class extends Form {
             });
         });
 
-        document.querySelector('#menu_tracks').click();
+        await document.querySelector('#menu_tracks').click();
+
+        // Add group to favorites
+        document.querySelector('.buttons span.fav-icon').addEventListener('click', e => {
+            let d = new FormData();
+            d.append('group', params.gid);
+
+            this.addFav(e, d);
+        });
+
+        // Add track to favorites
+        trackList.addEventListener('click', e => {
+            if (!e.target.classList.contains('add_favorite')) return;
+
+            let file = e.target.parentNode.querySelector('.src').dataset.src;
+            file = file.split('/')[1];
+            let d = new FormData();
+            d.append('file', file);
+
+            this.addFav(e, d);
+        });
 
     }
 
@@ -143,5 +181,21 @@ export default class extends Form {
                 </div>
             </div>
         `;
+    }
+
+    addFav(e, body) {
+        this.xhr.sendRequest('POST', '/users/fav', body)
+        .then(res => {
+            
+            if (res == 1) {
+                e.target.innerHTML = 'favorite';
+                this.showMessage('Добавлено в понравившиеся');
+            } else if (res == 0) {
+                e.target.innerHTML = 'favorite_border';
+                this.showMessage('Удалено из понравившихся');
+            } else
+                this.showMessage('Ошибка добавления');
+
+        });
     }
 }

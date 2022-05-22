@@ -28,6 +28,7 @@ export default class extends AbstractView {
         const content = document.querySelector('section.last-uploaded div.container.flex');
         const sliderRow = document.querySelector('.releases .slider .sliderRow');
 
+        // Get tracks
         await this.xhr.sendRequest('GET', '/tracks/get')
         .then(data => {
             data = JSON.parse(data);
@@ -46,6 +47,22 @@ export default class extends AbstractView {
             });
         });
 
+        // Handle favorite tracks
+        if (this.app.isAuthorized()) {
+            await this.xhr.sendRequest('GET', 'users/getFavTracks')
+            .then(res => {
+                if (res == 0) return;
+                let trcs = JSON.parse(res);
+
+                trcs.forEach(track => {
+                    let pN = document.querySelector(`[data-src="uploads/${track.location}"]`)?.parentNode;
+                    if (!pN) return;
+                    pN.querySelector('.fav-icon').innerHTML = 'favorite';
+                });
+            });
+        }
+
+        // Get recent albums
         await this.xhr.sendRequest('GET', '/albums/get')
         .then(data => {
             data = JSON.parse(data);
@@ -69,17 +86,20 @@ export default class extends AbstractView {
                 this.xhr.sendRequest('POST', '/users/fav', d)
                 .then(res => {
                     
-                    if (res == 1)
+                    if (res == 1) {
+                        e.target.innerHTML = 'favorite';
                         this.showMessage('Добавлено в понравившиеся');
-                    else if (res == 0)
-                        this.showMessage('Уже в понравившемся');
-                    else
+                    } else if (res == 0) {
+                        e.target.innerHTML = 'favorite_border';
+                        this.showMessage('Удалено из понравившихся');
+                    } else
                         this.showMessage('Ошибка добавления');
 
                 });
             });
         });
 
+        // Slider
         const arrowR = document.querySelector('.slider .arrow-right');
         const arrowL = document.querySelector('.slider .arrow-left');
 
@@ -100,11 +120,14 @@ export default class extends AbstractView {
             }
         });
 
+        // Adding slide animation
         document.querySelectorAll('.slider .slide').forEach(slide => {
-                slide.addEventListener('mouseover', function() { slide.querySelector('.slide__text').classList.add('shown') });
+            slide.addEventListener('mouseover', function() { slide.querySelector('.slide__text').classList.add('shown') });
 
-                slide.addEventListener('mouseout', function() { slide.querySelector('.slide__text').classList.remove('shown') });
+            slide.addEventListener('mouseout', function() { slide.querySelector('.slide__text').classList.remove('shown') });
         });
+
+        
 
     }
 

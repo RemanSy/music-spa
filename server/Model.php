@@ -133,4 +133,9 @@ class Model {
 
         return false;
     }
+
+    public function getPKValue() {
+        $pk = $this->primary_key;
+        return $this->$pk;
+    }
 }

@@ -37,7 +37,8 @@ export default class extends AbstractView {
     async scripts() {
         const tree = document.querySelector('ul.tree'),
               subTitle = document.querySelector('.albums .title'),
-              trackList = document.querySelector('.tracks ol');
+              trackList = document.querySelector('.tracks ol'),
+              userTk = this.decodeCookie().user;
 
         document.querySelectorAll('.menu span').forEach(el => {
             el.addEventListener('click', e => {
@@ -53,12 +54,12 @@ export default class extends AbstractView {
             subTitle.innerHTML = 'Группы';
             tree.innerHTML = '';
             trackList.innerHTML = '';
+            
 
-            // this.xhr.sendRequest('POST', '/users/getFavGroups');
-
-            await this.xhr.sendRequest('GET', '/albums/group')
+            await this.xhr.sendRequest('GET', `/users/getFavGroups`)
             .then(res => {
                 const groups = JSON.parse(res);
+                
                 groups.forEach(group => {
                     tree.insertAdjacentHTML('afterbegin', 
                     `<li>
@@ -88,6 +89,7 @@ export default class extends AbstractView {
 
         });
 
+
         // Select Albums
         document.querySelector('#menu_albums').addEventListener('click', async () => {
             document.querySelector('.container.grid').classList.remove('tracks_layout');
@@ -95,9 +97,7 @@ export default class extends AbstractView {
             tree.innerHTML = '';
             trackList.innerHTML = '';
 
-            // this.xhr.sendRequest('POST', '/users/getFavAlbums');
-
-            await this.xhr.sendRequest('GET', '/albums/get')
+            await this.xhr.sendRequest('GET', `/users/getFavAlbums`)
             .then(res => {
                 const albums = JSON.parse(res);
                 tree.insertAdjacentHTML('afterbegin', this.loadAlbums(albums));
@@ -114,9 +114,7 @@ export default class extends AbstractView {
             document.querySelector('.container.grid').classList.add('tracks_layout');
             trackList.innerHTML = '';
 
-            // this.xhr.sendRequest('POST', '/users/getFavTracks');
-
-            await this.xhr.sendRequest('GET', '/tracks/get')
+            await this.xhr.sendRequest('GET', `/users/getFavTracks`)
             .then(res => {
                 const tracks = JSON.parse(res);
 
@@ -135,20 +133,6 @@ export default class extends AbstractView {
                 });
             });
         });
-
-        // Getting groups and albums
-        // await this.xhr.sendRequest('GET', '/albums/group')
-        // .then(res => {
-        //     const groups = JSON.parse(res);
-        //     groups.forEach(group => {
-        //         tree.insertAdjacentHTML('afterbegin', 
-        //         `<li>
-        //             <div class="trigger">${group.title}</div>
-        //             <ul class="trigger-target">${this.loadAlbums(group.albums)}</ul>
-        //         </li>`
-        //         );
-        //     });
-        // });
 
         // Trigger click on groups tab in menu
         document.querySelector('#menu_groups').click();

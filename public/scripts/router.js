@@ -122,9 +122,4 @@ export default class {
 
         return tmp;
     }
-
-    isAuthorized() {
-        let cookies = this.decodeCookie();
-        return cookies.user ? true : false;
-    }
 }

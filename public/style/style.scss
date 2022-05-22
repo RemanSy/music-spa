@@ -418,7 +418,20 @@ body,
             width : 100%;
 
             tr {
+                position : relative;
                 height : 40px;
+
+                .close {
+                    display : inline-block;
+                    position : absolute;
+                    top : 0;
+                    right : 0;
+                    z-index : 500;
+                    font-size : 27px;
+                    width : 30px;
+                    cursor : pointer;
+                    user-select : none;
+                }
             }
 
             th, td {
@@ -427,6 +440,7 @@ body,
 
             input {
                 height : 100%;
+                width : 250px;
                 text-align : center;
                 background-color : rgba(0, 0, 0, 0.1);
                 border : none;
@@ -484,6 +498,11 @@ body,
             .album__title {
                 font-size : 35px;
                 font-weight : 600;
+            }
+
+            .album__group a:hover {
+                color :rgba(255, 0, 0, 0.9);
+                transition : 0.1s;
             }
 
             .year_genre {
@@ -691,6 +710,7 @@ body,
         display : inline-block;
         position : relative;
         margin : 0 auto;
+        margin-bottom : 10px;
         height : 50px;
         border-radius : 9px;
         font-size : 0;

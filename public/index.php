@@ -13,8 +13,6 @@ use app\server\controllers\TracksController;
 $router = new Router();
 $view = new View();
 
-$router->get('/test', [MainController::class, 'test']);
-
 // Handle main requests
 $router->get('@^/[a-zA-Z]{0,}$@', [MainController::class, 'index']);
 
@@ -37,13 +35,14 @@ $router->post('/users/fav', [UsersController::class, 'addFavorite']);
 
 
 // Getting favorite things
-$router->post('/users/getFavGroups', [UsersController::class, 'getGroups']);
+$router->get('/users/getFavGroups', [UsersController::class, 'getGroups']);
 
-$router->post('/users/getFavAlbums', [UsersController::class, 'getAlbums']);
+$router->get('/users/getFavAlbums', [UsersController::class, 'getAlbums']);
 
-$router->post('/users/getFavTracks', [UsersController::class, 'getTracks']);
+$router->get('/users/getFavTracks', [UsersController::class, 'getTracks']);
 
-$router->post('/users/checkAuth', [UsersController::class, 'checkAuth']);
+
+$router->get('/users/checkAuth', [UsersController::class, 'checkAuth']);
 
 $router->put('/users/update', [UsersController::class, 'update']);
 

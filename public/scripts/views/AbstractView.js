@@ -1,7 +1,9 @@
 import XHR from "../xhr.js";
+import app from "../app.js";
 
 export default class {
     xhr = new XHR();
+    app = app;
     title = '';
 
     getHTML() {
@@ -26,31 +28,10 @@ export default class {
     }
 
     decodeCookie() {
-        let tmp = {};
-        let cookies = document.cookie;
-
-        if (!cookies) return false;
-
-        cookies = cookies
-        .split(';')
-        .map(v => v.split('='));
-
-        cookies.forEach(val => {
-            tmp[decodeURIComponent(val[0].trim())] = decodeURIComponent(val[1].trim());
-        });
-
-        return tmp;
+        return this.app.router.decodeCookie();
     }
 
     showMessage(text, type = 'secondary') {
-        let msg = document.querySelector('.flash-message');
-        let span = msg.querySelector('span');
-        span.innerHTML = text;
-        
-        msg.classList.toggle(`alert-${type}`);
-
-        msg.classList.toggle('shown');
-
-        setTimeout(() => msg.classList.toggle('shown'), 4000);
+        return this.app.showMessage(text, type);
     }
 }

@@ -10,7 +10,6 @@ class UsersController extends Controller {
         parent::__construct();
         $this->model = new User();
     }
-
     public function get() {
         $data = $this->model->get();
 
@@ -38,6 +37,8 @@ class UsersController extends Controller {
         $this->model->token = $data['token'];
         $this->model->role = 1;
 
+        $this->response->setCookie('role', 1, time() + 7200);
+
         if (!$this->model->save($data)) {
             $this->response->responseCode(400);
             echo json_encode(['message' => 'Error saving data']);
@@ -58,6 +59,11 @@ class UsersController extends Controller {
     }
 
     public function checkAuth() {
+        if (!isset($_COOKIE['user'])) {
+            echo 0;
+            return;
+        }
+
         $res = $this->model->where('token', '=', $_COOKIE['user']);
 
         echo count($res);
@@ -65,49 +71,79 @@ class UsersController extends Controller {
 
     public function addFavorite() {
         $data = $this->request->getBody();
-        $token = $data['token'];
+        $token = $_COOKIE['user'];
         $file = $data['file'] ?? false;
-        $user_id = $this->db->query("SELECT `user_id` FROM `users` WHERE `token` = '{$token}'")[0]['user_id'];
-        
+        $album = $data['album'] ?? false;
+        $group = $data['group'] ?? false;
+        $user_id = $this->getIdByToken($token);
+
         // Add track
         if ($file) {
             $track_id = $this->db->query("SELECT `track_id` FROM `tracks` WHERE `location` = '{$file}'")[0]['track_id'];
             $if_exists = $this->db->query("SELECT `user_id`, `track_id` from `users_relations` where `user_id` = {$user_id} AND `track_id` = {$track_id}");            
             
-            if (count($if_exists) != 0)
+            if (count($if_exists) != 0) {
+                $this->db->query("DELETE FROM `users_relations` WHERE `track_id` = {$track_id} AND `user_id` = {$user_id}");
                 echo 0;
-            else {
-                $this->db->query("INSERT INTO `users_relations` VALUES (NULL, {$user_id}, NULL, {$track_id})");
+            } else {
+                $this->db->query("INSERT INTO `users_relations` VALUES (NULL, {$user_id}, NULL, NULL, {$track_id})");
                 echo 1;
             }
 
         // Add album
-        } else if ($data['album']) {
-            $album_id = $data['album'];
-            $if_exists = $this->db->query("SELECT `user_id`, `album_id` from `users_relations` where `user_id` = {$user_id} AND `album_id` = {$album_id}");            
+        } else if ($album) {
+            $if_exists = $this->db->query("SELECT `user_id`, `album_id` from `users_relations` where `user_id` = {$user_id} AND `album_id` = {$album}");            
             
-            if (count($if_exists) != 0)
+            if (count($if_exists) != 0) {
+                $this->db->query("DELETE FROM `users_relations` WHERE `album_id` = {$album} AND `user_id` = {$user_id}");
                 echo 0;
-            else {
-                $this->db->query("INSERT INTO `users_relations` VALUES (NULL, {$user_id}, {$album_id}, NULL)");
+            } else {
+                $this->db->query("INSERT INTO `users_relations` VALUES (NULL, {$user_id}, NULL, {$album}, NULL)");
                 echo 1;
             }
+        
+        // Add group
+        } else if ($group) {
+            $if_exists = $this->db->query("SELECT `user_id`, `album_id` from `users_relations` where `user_id` = {$user_id} AND `group_id` = {$group}");            
             
+            if (count($if_exists) != 0) {
+                $this->db->query("DELETE FROM `users_relations` WHERE `group_id` = {$group_id} AND `user_id` = {$user_id}");
+                echo 0;
+            } else {
+                $this->db->query("INSERT INTO `users_relations` VALUES (NULL, {$user_id}, {$group}, NULL, NULL)");
+                echo 1;
+            }
+
+        // Error
         } else {
             echo 'Error';
         }
     }
 
     public function getGroups() {
-        echo json_encode($this->model->getFavGroups());
+        $tk = $_COOKIE['user'];
+        $this->model->user_id = $this->getIdByToken($tk);
+
+        echo json_encode($this->model->getFavGroups(), JSON_UNESCAPED_UNICODE);
     }
 
     public function getAlbums() {
-        echo json_encode($this->model->getFavAlbums());
+        $tk = $_COOKIE['user'];
+        $this->model->user_id = $this->getIdByToken($tk);
+
+        echo json_encode($this->model->getFavAlbums(), JSON_UNESCAPED_UNICODE);
     }
 
     public function getTracks() {
-        echo json_encode($this->model->getFavTracks());
+        $tk = $_COOKIE['user'] ?? false;
+        if (!$tk) return false;
+
+        $this->model->user_id = $this->getIdByToken($tk);
+
+        echo json_encode($this->model->getFavTracks(), JSON_UNESCAPED_UNICODE);
     }
 
+    public function getIdByToken($token) {
+        return $this->db->query("SELECT `user_id` FROM `users` WHERE `token` = '{$token}'")[0]['user_id'];
+    }
 }

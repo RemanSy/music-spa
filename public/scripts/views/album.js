@@ -13,7 +13,9 @@ export default class extends AbstractView {
                             
                             <div>АЛЬБОМ</div>
                             <div class="album__title"></div>
-                            <div class="album__group"></div>
+                            <div class="album__group">
+                                <a href="group" data-link></a>
+                            </div>
                             <div class="year_genre"></div>
                             <div class="buttons">
                                 <button class="listen btn"><i class="material-icons">play_arrow</i> Слушать</button>
@@ -36,14 +38,15 @@ export default class extends AbstractView {
         if (!params.alid) return console.log('ID doesn\'t exist');
         
         await this.xhr.sendRequest('GET', `albums/get?id=${params.alid}`)
-        .then(data => {
-            data = JSON.parse(data)[0];
-            let d = new Date(data.year);
-
-            document.querySelector('.album__cover').src = `uploads/${data.image}`;
-            document.querySelector('.album__title').innerHTML = data.title;
-            document.querySelector('.album__group').innerHTML = data.group;
-            document.querySelector('.year_genre').innerHTML = `${d.getFullYear()} &#8729; ${data.genre}`;
+        .then(album => {
+            album = JSON.parse(album)[0];
+            let d = new Date(album.year);
+            
+            document.querySelector('.album__cover').src = `uploads/${album.image}`;
+            document.querySelector('.album__title').innerHTML = album.title;
+            document.querySelector('.album__group a').innerHTML = album.group;
+            document.querySelector('.album__group a').href = `group?gid=${album.group_id}`;
+            document.querySelector('.year_genre').innerHTML = `${d.getFullYear()} &#8729; ${album.genre}`;
         });
 
         // Load tracks
@@ -54,6 +57,21 @@ export default class extends AbstractView {
                 trackList.insertAdjacentHTML('beforeend', this.loadTrack(track.title, track.group, track.duration, track.location));
             });
         });
+
+        // Handle favorite tracks
+        if (this.app.isAuthorized()) {
+            await this.xhr.sendRequest('GET', 'users/getFavTracks')
+            .then(res => {
+                if (res == 0) return;
+                let trcs = JSON.parse(res);
+
+                trcs.forEach(track => {
+                    let pN = document.querySelector(`[data-src="uploads/${track.location}"]`)?.parentNode;
+                    if (!pN) return;
+                    pN.querySelector('.fav-icon').innerHTML = 'favorite';
+                });
+            });
+        }
 
         Player.tracks = document.querySelectorAll('li.track_info');
 
@@ -69,19 +87,8 @@ export default class extends AbstractView {
         document.querySelector('.buttons span.fav-icon').addEventListener('click', e => {
             let d = new FormData();
             d.append('album', params.alid);
-            d.append('token', this.decodeCookie().user);
 
-            this.xhr.sendRequest('POST', '/users/fav', d)
-            .then(res => {
-                
-                if (res == 1)
-                    this.showMessage('Добавлено в понравившиеся');
-                else if (res == 0)
-                    this.showMessage('Уже в понравившемся');
-                else
-                    this.showMessage('Ошибка добавления');
-
-            });
+            this.addFav(e, d);
         });
 
         // Add track to favorites
@@ -91,19 +98,8 @@ export default class extends AbstractView {
                 file = file.split('/')[1];
                 let d = new FormData();
                 d.append('file', file);
-                d.append('token', this.decodeCookie().user);
 
-                this.xhr.sendRequest('POST', '/users/fav', d)
-                .then(res => {
-                    
-                    if (res == 1)
-                        this.showMessage('Добавлено в понравившиеся');
-                    else if (res == 0)
-                        this.showMessage('Уже в понравившемся');
-                    else
-                        this.showMessage('Ошибка добавления');
-
-                });
+                this.addFav(e, d);
             });
         });
 
@@ -127,5 +123,21 @@ export default class extends AbstractView {
             <div class="src" data-src="uploads/${location}"></div>
         </li>
         `;
-    };
+    }
+
+    addFav(e, body) {
+        this.xhr.sendRequest('POST', '/users/fav', body)
+        .then(res => {
+            
+            if (res == 1) {
+                e.target.innerHTML = 'favorite';
+                this.showMessage('Добавлено в понравившиеся');
+            } else if (res == 0) {
+                e.target.innerHTML = 'favorite_border';
+                this.showMessage('Удалено из понравившихся');
+            } else
+                this.showMessage('Ошибка добавления');
+
+        });
+    }
 }

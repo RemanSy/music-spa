@@ -2,6 +2,7 @@ import Form from "./Form.js";
 
 export default class extends Form {
     title = 'Добавление альбома';
+    meta = {auth : true, access : 2};
 
     getHTML() {
         return `
@@ -17,24 +18,24 @@ export default class extends Form {
                         <div class="form-text">
                             <div class="form-control drop-down" id="groups">
                                 <label for="group">Группа</label>
-                                <input type="text">
+                                <input type="text" required>
                                 <input type="hidden" name="group">
                                 <ul class="d-none groups"></ul>
                             </div>
 
                             <div class="form-control">
                                 <label for="country">Название</label>
-                                <input type="text" name="albumTitle">
+                                <input type="text" name="albumTitle" required>
                             </div>
 
                             <div class="form-control">
                                 <label for="country">Год выпуска</label>
-                                <input type="number" name="year">
+                                <input type="number" name="year" required>
                             </div>
                             
                             <div class="form-control drop-down" id="genres">
                                 <label for="genre">Жанр</label>
-                                <input type="text">
+                                <input type="text" required>
                                 <input type="hidden" name="genre">
                                 <ul class="d-none genres"></ul>
                             </div>
@@ -92,14 +93,23 @@ export default class extends Form {
         // Handling adding file to table
         table.addEventListener('click', e => {
             let t = e.target;
-            if (t.dataset.file != '')
-                if (t.parentNode.dataset.file == '')
-                    t = t.parentNode;
-                else return;
 
-            let input = t.querySelector('input');
-            input.click();
-            input.addEventListener('change', e => t.querySelector('span').innerHTML = e.target.files[0].name);
+            if (t.dataset.file != '') {
+
+                if (t.parentNode.dataset.file == '') {
+                    t = t.parentNode;
+                    let input = t.querySelector('input');
+                    input.click();
+                    input.addEventListener('change', e => t.querySelector('span').innerHTML = e.target.files[0].name);
+                }
+
+            }
+
+            if (t.classList.contains('close'))
+                t.parentNode.remove();
+
+
+
         });
 
         // Press enter to blur input
@@ -118,12 +128,14 @@ export default class extends Form {
                         <span>Добавить файл</span>
                         <input type="file" name="image" class="d-none">
                     </td>
+                    <td class="close">&#10006;</td>
                 </tr>
             `;
             
             addTableRow.parentNode.parentNode.insertAdjacentHTML('beforebegin', row);
         });
 
+        // Submitting form
         form.addEventListener('submit', async e => {
             e.preventDefault();
 
@@ -133,7 +145,7 @@ export default class extends Form {
             trackRows.splice(0, 1);
             trackRows.splice(trackRows.length - 1, 1);
             
-
+            // Calculate track duration
             await asyncForEach(trackRows, async (row, key) => {
                 let title = row.querySelector('td[data-title]').innerHTML;
                 let file = row.querySelector('td[data-file] input').files[0];

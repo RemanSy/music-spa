@@ -2,6 +2,7 @@ import Form from "./Form.js";
 
 export default class extends Form {
     title = 'Добавление группы';
+    meta = {auth : true, access : 2};
 
     getHTML() {
         return `

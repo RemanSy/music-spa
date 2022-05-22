@@ -15,6 +15,11 @@ class App {
 
         setTimeout(() => this.msg.classList.toggle('shown'), 4000);
     }
+
+    isAuthorized() {
+        let cookies = this.router.decodeCookie();
+        return cookies.user ? true : false;
+    }
 }
 
 const app = new App(),
@@ -33,12 +38,12 @@ router.beforeReq(  (to, from, next) => {
     
     // Authentification check
     if (route.meta?.auth === true)
-        if (router.isAuthorized() !== true)
+        if (app.isAuthorized() !== true)
                return (to == from) ? redirWithMsg('/', 'Для начала авторизируйтесь') : redirWithMsg(from, 'Для начала авторизируйтесь');
         
     
     // Check if authentification is valid
-    xhr.sendRequest('POST', '/users/checkAuth')
+    xhr.sendRequest('GET', '/users/checkAuth')
     .then(data => {
         if (data == 0) {
             document.cookie = 'user=; Max-Age=0; path=/; domain=' + location.host;
@@ -53,6 +58,8 @@ router.beforeReq(  (to, from, next) => {
 
     return next();
 } );
+
+export default app;
 
 document.body.addEventListener('click', e => {
     let t = e.target;

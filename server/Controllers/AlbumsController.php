@@ -17,14 +17,14 @@ class AlbumsController extends Controller {
         $id = $this->request->getBody()['id'] ?? false;
 
         if (!$id) {
-            $data = $this->db->query("SELECT `album_id`, `albums`.`title`, `groups`.`title` as `group`, `genres`.`name` as `genre`, `year`, `albums`.`image`, `albums`.`created_at`, `albums`.`updated_at` 
+            $data = $this->db->query("SELECT `group_id`, `album_id`, `albums`.`title`, `groups`.`title` as `group`, `genres`.`name` as `genre`, `year`, `albums`.`image`, `albums`.`created_at`, `albums`.`updated_at` 
             FROM `albums` 
                 JOIN `groups` 
                     ON `albums`.`_group` = `groups`.`group_id` 
                 JOIN `genres` 
                     ON `albums`.`genre` = `genres`.`genre_id`");
         } else {
-            $data = $this->db->query("SELECT `album_id`, `albums`.`title`, `groups`.`title` as `group`, `genres`.`name` as `genre`, `year`, `albums`.`image`, `albums`.`created_at`, `albums`.`updated_at` 
+            $data = $this->db->query("SELECT `group_id`, `album_id`, `albums`.`title`, `groups`.`title` as `group`, `genres`.`name` as `genre`, `year`, `albums`.`image`, `albums`.`created_at`, `albums`.`updated_at` 
             FROM `albums` 
                 JOIN `groups` 
                     ON `albums`.`_group` = `groups`.`group_id` 
